@@ -4,7 +4,7 @@ using System.Device.Gpio;
 using System.Diagnostics;
 
 c.WriteLine("Subsustem is now running. Press any key to exit.");
-int pin = 18;
+int pin = 3;
 using var controller = new GpioController();
 controller.OpenPin(pin, PinMode.Input);
 
@@ -22,12 +22,14 @@ controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Rising, (p
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 {
+    // focus to console
+    FocusHandler.Focus(FocusHandler.ShowWindowEnum.Show);
     c.WriteLine("Warning: Subsystem is shutting down. Press any key to continue, or 'r' to restart.");
     var key = c.ReadKey();
     if (key.KeyChar == 'r') // restart subsystem
         try { Process.Start(Process.GetCurrentProcess().MainModule!.FileName!); }
         catch (Exception) { c.WriteLine("Error restarting subsystem."); }
-    controller.ClosePin(pin);
+    //controller.ClosePin(pin);
 };
 
 c.ReadKey();
