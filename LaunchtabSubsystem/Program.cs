@@ -22,8 +22,6 @@ controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Rising, (p
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 {
-    // focus to console
-    FocusHandler.Focus(FocusHandler.ShowWindowEnum.Show);
     c.WriteLine("Warning: Subsystem is shutting down. Press any key to continue, or 'r' to restart.");
     var key = c.ReadKey();
     if (key.KeyChar == 'r') // restart subsystem
