@@ -29,7 +29,7 @@ public class FocusHandler
 
     public static void Focus() => SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle);
 
-    public static void Focus(ShowWindowEnum flag) => SetForegroundWindow(flag);
+    public static void Focus(ShowWindowEnum flag) => SetForegroundWindow(Process.GetCurrentProcess().MainWindowHandle, flag);
 
     
 }
