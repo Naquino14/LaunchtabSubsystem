@@ -1,0 +1,3 @@
+echo Running...
+sudo ~/.dotnet/dotnet ./bin/Debug/net6.0/LaunchtabSubsystem.dll
+echo Execution finished.

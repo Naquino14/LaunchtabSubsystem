@@ -1,0 +1,3 @@
+echo Building and running...
+sudo ~/.dotnet/dotnet run ./LaunchtabSubsystem.sln
+echo Execution finished.

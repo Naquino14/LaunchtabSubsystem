@@ -1,0 +1,3 @@
+echo Building...
+sudo ~/.dotnet/dotnet build ./LaunchtabSubsystem.sln
+echo Build Finished.
