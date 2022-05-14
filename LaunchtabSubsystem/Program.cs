@@ -5,19 +5,19 @@ using System.Diagnostics;
 
 c.WriteLine("Subsustem is now running. Press any key to exit.");
 int pin = 18;
-//using var controller = new GpioController();
-//controller.OpenPin(pin, PinMode.Input);
+using var controller = new GpioController();
+controller.OpenPin(pin, PinMode.Input);
 
-// pin update callbacks
-//controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Falling, (pin, value) =>
-//{
-//    c.WriteLine($"Falling! Pin {pin} changed to {value}");
-//});
+//pin update callbacks
+controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Falling, (pin, value) =>
+{
+    c.WriteLine($"Falling! Pin {pin} changed to {value}");
+});
 
-//controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Rising, (pin, value) =>
-//{
-//    c.WriteLine($"Rising! Pin {pin} changed to {value}");
-//});
+controller.RegisterCallbackForPinValueChangedEvent(pin, PinEventTypes.Rising, (pin, value) =>
+{
+    c.WriteLine($"Rising! Pin {pin} changed to {value}");
+});
 
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
@@ -27,7 +27,7 @@ AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
     if (key.KeyChar == 'r') // restart subsystem
         try { Process.Start(Process.GetCurrentProcess().MainModule!.FileName!); }
         catch (Exception) { c.WriteLine("Error restarting subsystem."); }
-    //controller.ClosePin(pin);
+    controller.ClosePin(pin);
 };
 
 c.ReadKey();
