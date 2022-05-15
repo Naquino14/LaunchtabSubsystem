@@ -42,11 +42,13 @@ Action Shutdown = () =>
 };
 
 int gestLoopCounter = 0;
-bool tap = false, doubleTapped = false, held = false, recording = false;
+bool tap = false, doubleTapped = false, held = false, doubleTapFlag = false;
+
+ProcessStartInfo readtempPsi = new () { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true };
 for (;;)
 {
     // get cpu temp
-    Process tProcess = new() { StartInfo = new() { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true } };
+    Process tProcess = new() { StartInfo = readtempPsi };
     tProcess.Start();
     float temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
     //c.WriteLine($"CPU temp: {temp}'C");
@@ -55,17 +57,23 @@ for (;;)
     else if (temp <= fanOnTemp && fanOn)
         FanOff();
 
-    if (pressedState) // todo: fix logic
+    gestLoopCounter = pressedState ? gestLoopCounter + 1 : 0;
+
+    doubleTapped = !doubleTapped && doubleTapped;
+    held = !held && held;
+    
+    // handle double tapping
+    if (tap && gestLoopCounter == 0)
+        doubleTapFlag = true;
+    else if (doubleTapFlag)
     {
-        tap = !tap;
-        if (gestLoopCounter > 6) // press and hold aprox 1.25 sec
-            { held = true; gestLoopCounter = 0;}
-        else if (gestLoopCounter > 2 && !tap) // double tap fired
-            { doubleTapped = true; gestLoopCounter = 0; }
-        gestLoopCounter++;
+        doubleTapped = true;
+        doubleTapFlag = false;
     }
-    else if (!tap)
-        gestLoopCounter = 0;
+
+    // handle holding
+    if (pressedState && gestLoopCounter > 5)
+        held = true;
 
     if (held)
         c.WriteLine("Held.");
@@ -74,5 +82,10 @@ for (;;)
     else if (doubleTapped && held)
         c.WriteLine("Double tapped and held.");
 
+    if (pressedState && !tap)
+        tap = true;
+    else
+        tap = false;
+    gestLoopCounter++;
     Thread.Sleep(200);
 }
