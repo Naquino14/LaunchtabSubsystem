@@ -46,8 +46,10 @@ bool tap = false, doubleTapped = false, held = false, recording = false;
 for (;;)
 {
     // get cpu temp
-    var temp = int.Parse(new Process(){ StartInfo = new("vcgencmd", "measure_temp") }.Start().StandardOutput.ReadToEnd().Trim());
-    c.WriteLine($"CPU temp: {temp}");
+    Process tProcess = new() { StartInfo = new("vcgencmd", "measure_temp") };
+    tProcess.Start();
+    float temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
+    c.WriteLine($"CPU temp: {temp}'C");
 
     if (pressedState) // todo: fix logic
     {
