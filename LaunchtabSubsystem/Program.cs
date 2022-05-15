@@ -46,7 +46,7 @@ bool tap = false, doubleTapped = false, held = false, recording = false;
 for (;;)
 {
     // get cpu temp
-    Process tProcess = new() { StartInfo = new("vcgencmd", "measure_temp") };
+    Process tProcess = new() { StartInfo = new() { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true } };
     tProcess.Start();
     float temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
     c.WriteLine($"CPU temp: {temp}'C");
