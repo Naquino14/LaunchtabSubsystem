@@ -9,8 +9,8 @@ using System.Threading;
 c.WriteLine("Subsystem is now running. Press ctrl+c to exit.");
 
 int powerButtonPin = 3, fanPin = 4;
-bool pressedState = false;
-const int fanOnTemp = 75;
+bool pressedState = false, fanOn = false;
+const float fanOnTemp = 65.0f;
 
 using var controller = new GpioController();
 controller.OpenPin(powerButtonPin, PinMode.Input);
@@ -21,8 +21,8 @@ controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes
 
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Rising, (pin, value) => { pressedState = true; });
 
-Action fanOn = () => { controller.Write(fanPin, PinValue.Low); }; // pnp transistor
-Action fanOff = () => { controller.Write(fanPin, PinValue.High); };
+Action FanOn = () => { controller.Write(fanPin, PinValue.Low); fanOn = true; }; // pnp transistor
+Action FanOff = () => { controller.Write(fanPin, PinValue.High); fanOn = false;};
 
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
@@ -49,7 +49,11 @@ for (;;)
     Process tProcess = new() { StartInfo = new() { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true } };
     tProcess.Start();
     float temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
-    c.WriteLine($"CPU temp: {temp}'C");
+    //c.WriteLine($"CPU temp: {temp}'C");
+    if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
+        FanOn();
+    else if (temp <= fanOnTemp && fanOn)
+        FanOff();
 
     if (pressedState) // todo: fix logic
     {
