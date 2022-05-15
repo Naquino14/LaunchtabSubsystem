@@ -1,14 +1,21 @@
-﻿using System;
+﻿#define DEBUG
+
+using System;
 using c = System.Console;
 using System.Device.Gpio;
 using System.Diagnostics;
 using System.Threading;
+using MMALSharp;
+using MMALSharp.Handlers;
+using MMALSharp.Common;
 
 c.WriteLine("Subsystem is now running. Press ctrl+c to exit.");
 int powerButtonPin = 3;
 bool pressedState = false;
 using var controller = new GpioController();
 controller.OpenPin(powerButtonPin, PinMode.Input);
+
+var cam = MMALCamera.Instance;
 
 //pin update callbacks
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Falling, (pin, value) => { pressedState = false; });
@@ -21,7 +28,7 @@ AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
     c.WriteLine("\rWarning: Subsystem is shutting down. Press any key to continue, or 'r' to restart.");
     var key = c.ReadKey();
     if (key.KeyChar == 'r') // restart subsystem
-        try { Process.Start(Process.GetCurrentProcess().MainModule!.FileName!); }
+        try { Process.Start(Environment.ProcessPath!); }
         catch (Exception) { c.WriteLine("Error restarting subsystem."); }
     c.Write('\r');
 };
@@ -32,17 +39,46 @@ Action Shutdown = () =>
     new Process(){ StartInfo = new("sudo", "shutdown -h now") }.Start();
 };
 
+Action TakePhoto = () =>
+{
+    using (ImageStreamCaptureHandler handler = new("~/pi/images/", "jpg"))
+    cam.TakePicture(handler, MMALEncoding.JPEG, MMALEncoding.I420);
+};
+
 int gestLoopCounter = 0;
+bool tap = false, doubleTapped = false, held = false, recording = false;
 for (;;)
 {
     if (pressedState)
     {
-        if (gestLoopCounter > 6) // aprox 1.25 sec
-            Shutdown();
+        tap = !tap;
+        if (gestLoopCounter > 6) // press and hold aprox 1.25 sec
+            held = true;
+        else if (gestLoopCounter > 2 && !tap) // double tap fired
+            doubleTapped = true;
         gestLoopCounter++;
     }
-    else
+    else if (!tap)
         gestLoopCounter = 0;
+
+    if (held)
+    #if DEBUG
+        c.WriteLine("Held.");
+    #else
+        ShutDown();
+    #endif
+    if (doubleTapped)
+    #if DEBUG
+        c.WriteLine("Double tapped.");
+    #else
+        TakePhoto();
+    #endif
+    if (doubleTapped && held)
+    #if DEBUG
+        c.WriteLine("Double tapped and held.");
+    #else
+        TakeVideo();
+    #endif
 
     Thread.Sleep(200);
 }
