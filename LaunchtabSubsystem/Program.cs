@@ -38,36 +38,24 @@ int gestLoopCounter = 0;
 bool tap = false, doubleTapped = false, held = false, recording = false;
 for (;;)
 {
-    if (pressedState)
+    if (pressedState) // todo: fix logic
     {
         tap = !tap;
         if (gestLoopCounter > 6) // press and hold aprox 1.25 sec
-            held = true;
+            { held = true; gestLoopCounter = 0;}
         else if (gestLoopCounter > 2 && !tap) // double tap fired
-            doubleTapped = true;
+            { doubleTapped = true; gestLoopCounter = 0; }
         gestLoopCounter++;
     }
     else if (!tap)
         gestLoopCounter = 0;
 
     if (held)
-    #if DEBUG
         c.WriteLine("Held.");
-    #else
-        ShutDown();
-    #endif
-    if (doubleTapped)
-    #if DEBUG
+    else if (doubleTapped)
         c.WriteLine("Double tapped.");
-    #else
-        ;
-    #endif
-    if (doubleTapped && held)
-    #if DEBUG
+    else if (doubleTapped && held)
         c.WriteLine("Double tapped and held.");
-    #else
-        ;
-    #endif
 
     Thread.Sleep(200);
 }
