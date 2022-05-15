@@ -9,8 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Iot.Device.Bindings" Version="2.1.0" />
-    <PackageReference Include="MMALSharp" Version="0.6.0" />
-    <PackageReference Include="MMALSharp.FFmpeg" Version="0.6.0" />
   </ItemGroup>
 
 </Project>

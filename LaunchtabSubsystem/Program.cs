@@ -5,17 +5,12 @@ using c = System.Console;
 using System.Device.Gpio;
 using System.Diagnostics;
 using System.Threading;
-using MMALSharp;
-using MMALSharp.Handlers;
-using MMALSharp.Common;
 
 c.WriteLine("Subsystem is now running. Press ctrl+c to exit.");
 int powerButtonPin = 3;
 bool pressedState = false;
 using var controller = new GpioController();
 controller.OpenPin(powerButtonPin, PinMode.Input);
-
-var cam = MMALCamera.Instance;
 
 //pin update callbacks
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Falling, (pin, value) => { pressedState = false; });
@@ -37,12 +32,6 @@ Action Shutdown = () =>
 {
     c.WriteLine("\rShutdown request recieved.");
     new Process(){ StartInfo = new("sudo", "shutdown -h now") }.Start();
-};
-
-Action TakePhoto = () =>
-{
-    using (ImageStreamCaptureHandler handler = new("~/pi/images/", "jpg"))
-    cam.TakePicture(handler, MMALEncoding.JPEG, MMALEncoding.I420);
 };
 
 int gestLoopCounter = 0;
@@ -71,13 +60,13 @@ for (;;)
     #if DEBUG
         c.WriteLine("Double tapped.");
     #else
-        TakePhoto();
+        ;
     #endif
     if (doubleTapped && held)
     #if DEBUG
         c.WriteLine("Double tapped and held.");
     #else
-        TakeVideo();
+        ;
     #endif
 
     Thread.Sleep(200);
