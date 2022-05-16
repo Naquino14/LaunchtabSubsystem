@@ -41,51 +41,27 @@ Action Shutdown = () =>
     new Process(){ StartInfo = new("sudo", "shutdown -h now") }.Start();
 };
 
-int gestLoopCounter = 0;
-bool tap = false, doubleTapped = false, held = false, doubleTapFlag = false;
+int loopCounter = 0;
+float temp = 0.0f;
 
 ProcessStartInfo readtempPsi = new () { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true };
 for (;;)
 {
     // get cpu temp
-    Process tProcess = new() { StartInfo = readtempPsi };
-    tProcess.Start();
-    float temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
-    //c.WriteLine($"CPU temp: {temp}'C");
-    if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
-        FanOn();
-    else if (temp <= fanOnTemp && fanOn)
-        FanOff();
-
-    gestLoopCounter = pressedState ? gestLoopCounter + 1 : 0;
-
-    doubleTapped = !doubleTapped && doubleTapped;
-    held = !held && held;
-    
-    // handle double tapping
-    if (tap && gestLoopCounter == 0)
-        doubleTapFlag = true;
-    else if (doubleTapFlag)
+    if (loopCounter % 30 == 0)
     {
-        doubleTapped = true;
-        doubleTapFlag = false;
+        Process tProcess = new() { StartInfo = readtempPsi };
+        tProcess.Start();
+        temp = float.Parse(tProcess.StandardOutput.ReadToEnd().Split('=')[1].Split('\'')[0]);
+        //c.WriteLine($"CPU temp: {temp}'C");
+        if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
+            FanOn();
+        else if (temp <= fanOnTemp && fanOn)
+            FanOff();
+
+        // todo once the mcp3008 arrives: sample battery voltage
     }
 
-    // handle holding
-    if (pressedState && gestLoopCounter > 5)
-        held = true;
-
-    if (held)
-        c.WriteLine("Held.");
-    else if (doubleTapped)
-        c.WriteLine("Double tapped.");
-    else if (doubleTapped && held)
-        c.WriteLine("Double tapped and held.");
-
-    if (pressedState && !tap)
-        tap = true;
-    else
-        tap = false;
-    gestLoopCounter++;
-    Thread.Sleep(200);
+    loopCounter %= 10000;
+    Thread.Sleep(100);
 }
