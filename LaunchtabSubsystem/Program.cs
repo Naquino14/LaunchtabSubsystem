@@ -41,7 +41,8 @@ Action Shutdown = () =>
     new Process(){ StartInfo = new("sudo", "shutdown -h now") }.Start();
 };
 
-int loopCounter = 0;
+int loopCounter = 0, gestLoopCounter = 0, prevCounter = 0;
+bool tap = false, doubleTap = false, hold = false;
 float temp = 0.0f;
 
 ProcessStartInfo readtempPsi = new () { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true };
@@ -61,6 +62,25 @@ for (;;)
 
         // todo once the mcp3008 arrives: sample battery voltage
     }
+
+    if (pressedState)
+    { gestLoopCounter++; prevCounter = loopCounter; }
+    else
+        gestLoopCounter = 0;
+
+    if (loopCounter - prevCounter > 10)
+    {
+        hold = false;
+        tap = false;
+        doubleTap = false;
+    }
+
+    if (gestLoopCounter > 10)
+        hold = true;
+    else if (gestLoopCounter > 5)
+        tap = true;
+    else if (tap && gestLoopCounter > 1)
+        doubleTap = true;
 
     loopCounter %= 10000;
     Thread.Sleep(100);
