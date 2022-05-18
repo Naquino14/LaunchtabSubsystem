@@ -42,7 +42,7 @@ Action Shutdown = () =>
 };
 
 int loopCounter = 0, gestLoopCounter = 0, prevCounter = 0;
-bool tap = false, doubleTap = false, hold = false;
+bool tap = false, doubleTap = false, hold = false, doubleTapOk = false;
 float temp = 0.0f;
 
 ProcessStartInfo readtempPsi = new () { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true };
@@ -64,24 +64,30 @@ for (;;)
     }
 
     if (pressedState)
-    { gestLoopCounter++; prevCounter = loopCounter; }
+    { gestLoopCounter++; prevCounter = loopCounter; tap = true;}
     else
         gestLoopCounter = 0;
-
+    if (gestLoopCounter > 4)
+        tap = false;
+    
     if (loopCounter - prevCounter > 10)
     {
         hold = false;
         tap = false;
         doubleTap = false;
+        doubleTapOk = false;
     }
 
     if (gestLoopCounter > 10)
-        hold = true;
-    else if (gestLoopCounter > 5)
-        tap = true;
-    else if (tap && gestLoopCounter > 1)
-        doubleTap = true;
+        {hold = true; c.Write($"Holding "); }
+    else if (tap && gestLoopCounter > 1 && doubleTapOk)
+        {doubleTap = true; c.Write($"Double tapping! "); doubleTapOk = false;}
+    
+    if (tap && !pressedState)
+        doubleTapOk = true;
 
+    c.WriteLine(pressedState + " " + gestLoopCounter);
+    loopCounter++;
     loopCounter %= 10000;
     Thread.Sleep(100);
 }
