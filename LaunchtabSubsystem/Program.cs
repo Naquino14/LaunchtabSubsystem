@@ -23,6 +23,14 @@ controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes
 
 Action FanOn = () => { controller.Write(fanPin, PinValue.Low); fanOn = true; }; // pnp transistor
 Action FanOff = () => { controller.Write(fanPin, PinValue.High); fanOn = false;};
+Action ToggleFan = () => 
+{
+    fanOn = !fanOn;
+    if (fanOn)
+        FanOn();
+    else
+        FanOff();
+};
 
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
@@ -42,7 +50,7 @@ Action Shutdown = () =>
 };
 
 int loopCounter = 0, gestLoopCounter = 0, prevCounter = 0;
-bool tap = false, doubleTap = false, hold = false, doubleTapOk = false;
+bool tap = false, hold = false, doubleTapOk = false;
 float temp = 0.0f;
 
 ProcessStartInfo readtempPsi = new () { FileName = "vcgencmd", Arguments = "measure_temp", RedirectStandardOutput = true };
@@ -74,19 +82,18 @@ for (;;)
     {
         hold = false;
         tap = false;
-        doubleTap = false;
         doubleTapOk = false;
     }
 
-    if (gestLoopCounter > 10)
-        {hold = true; c.Write($"Holding "); }
+    if (gestLoopCounter > 10 && !hold)
+        {hold = true; Shutdown(); hold = false; }
     else if (tap && gestLoopCounter > 1 && doubleTapOk)
-        {doubleTap = true; c.Write($"Double tapping! "); doubleTapOk = false;}
+        {doubleTapOk = false; ToggleFan();}
     
     if (tap && !pressedState)
         doubleTapOk = true;
 
-    c.WriteLine(pressedState + " " + gestLoopCounter);
+    //c.WriteLine(pressedState + " " + gestLoopCounter);
     loopCounter++;
     loopCounter %= 10000;
     Thread.Sleep(100);
