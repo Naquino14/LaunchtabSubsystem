@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System.Threading;
 using Iot.Device.Adc;
 using System.Device.Spi;
+using Iot.Device.DCMotor;
+using System.Device.Pwm;
 
 c.WriteLine("Subsystem is now running. Press ctrl+c to exit.");
 
@@ -54,8 +56,10 @@ controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes
 
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Rising, (pin, value) => { pressedState = true; });
 
-Action FanOn = () => { controller.Write(fanPin, PinValue.Low); fanOn = true; }; // pnp transistor
-Action FanOff = () => { controller.Write(fanPin, PinValue.High); fanOn = false;};
+using DCMotor motor = DCMotor.Create(PwmChannel.Create(0, 0, frequency: 50));
+
+Action FanOn = () => { controller.Write(fanPin, PinValue.High); fanOn = true; }; // npn transistor
+Action FanOff = () => { controller.Write(fanPin, PinValue.Low); fanOn = false;};
 Action ToggleFan = () => 
 {
     fanOn = !fanOn;
@@ -91,20 +95,21 @@ for (;;)
     // get cpu temp
     if (loopCounter % 30 == 0)
     {
-        temp = GetCpuTemp();
-        //c.WriteLine($"CPU temp: {temp}'C");
-        if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
-            FanOn();
-        else if (temp <= fanOnTemp && fanOn)
-            FanOff();
+        //temp = GetCpuTemp();
+        c.WriteLine($"CPU temp: {temp}'C");
+        //if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
+        //    FanOn();
+        //else if (temp <= fanOnTemp && fanOn)
+        //    FanOff();
+        ToggleFan();
     }
 
     if (loopCounter % 3 == 0)
     {
         // todo once the mcp3008 arrives: sample battery voltage
         //var cellVoltages = GetCellVoltages();
-        var value = TestADC();
-        c.WriteLine($"{value}%");
+        //var value = TestADC();
+        //c.WriteLine($"{value}%");
     }
 
     if (pressedState)
