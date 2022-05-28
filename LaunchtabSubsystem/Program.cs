@@ -91,13 +91,12 @@ for (;;)
     // get cpu temp
     if (loopCounter % 30 == 0)
     {
-        //temp = GetCpuTemp();
+        temp = GetCpuTemp();
         c.WriteLine($"CPU temp: {temp}'C");
-        //if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
-        //    FanOn();
-        //else if (temp <= fanOnTemp && fanOn)
-        //    FanOff();
-        ToggleFan();
+        if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
+            FanOn();
+        else if (temp <= fanOnTemp && fanOn)
+            FanOff();
     }
 
     if (loopCounter % 3 == 0)
