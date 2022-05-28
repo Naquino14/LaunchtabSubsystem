@@ -8,8 +8,6 @@ using System.Diagnostics;
 using System.Threading;
 using Iot.Device.Adc;
 using System.Device.Spi;
-using Iot.Device.DCMotor;
-using System.Device.Pwm;
 
 c.WriteLine("Subsystem is now running. Press ctrl+c to exit.");
 
@@ -55,8 +53,6 @@ Func<float> GetCpuTemp = () =>
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Falling, (pin, value) => { pressedState = false; });
 
 controller.RegisterCallbackForPinValueChangedEvent(powerButtonPin, PinEventTypes.Rising, (pin, value) => { pressedState = true; });
-
-using DCMotor motor = DCMotor.Create(PwmChannel.Create(0, 0, frequency: 50));
 
 Action FanOn = () => { controller.Write(fanPin, PinValue.High); fanOn = true; }; // npn transistor
 Action FanOff = () => { controller.Write(fanPin, PinValue.Low); fanOn = false;};
