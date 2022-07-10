@@ -64,6 +64,7 @@ Action ToggleFan = () =>
     else
         FanOff();
 };
+FanOff();
 
 // exit warning
 AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
@@ -92,7 +93,7 @@ for (;;)
     if (loopCounter % 30 == 0)
     {
         temp = GetCpuTemp();
-        c.WriteLine($"CPU temp: {temp}'C");
+        //c.WriteLine($"CPU temp: {temp}'C");
         if (temp > fanOnTemp && !fanOn) // turn fan on if its too hot
             FanOn();
         else if (temp <= fanOnTemp && fanOn)
@@ -102,9 +103,10 @@ for (;;)
     if (loopCounter % 3 == 0)
     {
         // todo once the mcp3008 arrives: sample battery voltage
-        //var cellVoltages = GetCellVoltages();
         //var value = TestADC();
         //c.WriteLine($"{value}%");
+        var cellVoltages = GetCellVoltages();
+        c.WriteLine($"{cellVoltages.Cell1:0.00}V {cellVoltages.Cell2:0.00}V {cellVoltages.Cell3:0.00}V {cellVoltages.Cell4:0.00}V ");
     }
 
     if (pressedState)
